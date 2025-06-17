@@ -43,6 +43,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart';
+
 import 'bindings.dart';
 import 'extensions.dart';
 import 'type.dart';
@@ -110,16 +112,16 @@ class ImportFormat extends AssimpType<aiImporterDesc> {
   }
 
   /// Full name of the importer (i.e. Blender3D importer)
-  String get name => _desc.mName.toDartString();
+  String get name => _desc.mName.cast<Utf8>().toDartString();
 
   /// Original author (left blank if unknown or whole assimp team)
-  String get author => _desc.mAuthor.toDartString();
+  String get author => _desc.mAuthor.cast<Utf8>().toDartString();
 
   /// Current maintainer, left blank if the author maintains
-  String get maintainer => _desc.mMaintainer.toDartString();
+  String get maintainer => _desc.mMaintainer.cast<Utf8>().toDartString();
 
   /// Implementation comments, i.e. unimplemented features
-  String get comments => _desc.mComments.toDartString();
+  String get comments => _desc.mComments.cast<Utf8>().toDartString();
 
   /// These flags indicate some characteristics common to many importers.
   int get flags => _desc.mFlags;
@@ -137,5 +139,5 @@ class ImportFormat extends AssimpType<aiImporterDesc> {
   /// words) so this does not mean that common or generic
   /// file extensions such as XML would be tediously slow.
   List<String> get extensions =>
-      _desc.mFileExtensions.toDartString().split(' ');
+      _desc.mFileExtensions.cast<Utf8>().toDartString().split(' ');
 }

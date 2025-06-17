@@ -105,7 +105,7 @@ class Node extends AssimpType<aiNode> {
 
   /// The meshes of this node. Each entry is an index into the
   /// mesh list of the [Scene].
-  Iterable<int> get meshes => _node.mMeshes.asTypedList(_node.mNumMeshes);
+  Iterable<int> get meshes => _node.mMeshes.cast<Uint32>().asTypedList(_node.mNumMeshes);
 
   /// Metadata associated with this node or NULL if there is no metadata.
   /// Whether any metadata is generated depends on the source file format. See the

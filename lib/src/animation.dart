@@ -43,12 +43,14 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'dart:ffi';
 
+import 'package:ffi/ffi.dart'; // Add this wherever you're calling `asTypedList()`
+
 import 'bindings.dart';
 import 'extensions.dart';
 import 'type.dart';
 
 enum AnimBehavior { defaults, constant, linear, repeat }
-
+typedef UnsignedInt = Uint32; // Add this if not defined
 class VectorKey extends AssimpType<aiVectorKey> {
   aiVectorKey get _vectorKey => ptr.ref;
 
@@ -99,9 +101,10 @@ class MeshMorphKey extends AssimpType<aiMeshMorphKey> {
 
   double get time => _meshMorphKey.mTime;
   Iterable<int> get values =>
-      _meshMorphKey.mValues.asTypedList(_meshMorphKey.mNumValuesAndWeights);
+      _meshMorphKey.mValues.cast<Uint32>().asTypedList(_meshMorphKey.mNumValuesAndWeights);
+
   Iterable<double> get weights =>
-      _meshMorphKey.mWeights.asTypedList(_meshMorphKey.mNumValuesAndWeights);
+      _meshMorphKey.mWeights.cast<Float>().asTypedList(_meshMorphKey.mNumValuesAndWeights);
 }
 
 class NodeAnim extends AssimpType<aiNodeAnim> {
@@ -136,8 +139,8 @@ class NodeAnim extends AssimpType<aiNodeAnim> {
     );
   }
 
-  AnimBehavior get preState => AnimBehavior.values[_nodeAnim.mPreState];
-  AnimBehavior get postState => AnimBehavior.values[_nodeAnim.mPostState];
+  AnimBehavior get preState => AnimBehavior.values[_nodeAnim.mPreState as int];
+  AnimBehavior get postState => AnimBehavior.values[_nodeAnim.mPostState as int];
 }
 
 class MeshAnim extends AssimpType<aiMeshAnim> {

@@ -43,6 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'dart:convert';
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
 import 'package:vector_math/vector_math.dart';
@@ -58,7 +59,6 @@ extension AssimpAabb3 on Aabb3 {
       AssimpVector3.fromNative(a.mMax),
     );
   }
-
 //  static Pointer<bindings.aiAABB> toNative(Aabb3 aabb) {
 //    final Pointer<bindings.aiAABB> ptr = allocate();
 //    ptr.ref.mMin = AssimpVector3.toNative(aabb.min);
@@ -66,7 +66,32 @@ extension AssimpAabb3 on Aabb3 {
 //    return ptr;
 //  }
 }
-
+extension PointerCharString on Pointer<Char> {
+  String toDartString() => cast<Utf8>().toDartString();
+}
+extension StringFFI on String {
+  Pointer<Char> toNativeString({Allocator allocator = malloc}) {
+    final units = utf8.encode(this);
+    final Pointer<Uint8> result = allocator.allocate<Uint8>(units.length + 1);
+    final Uint8List nativeString = result.asTypedList(units.length + 1);
+    nativeString.setAll(0, units);
+    nativeString[units.length] = 0;
+    return result.cast<Char>();
+  }
+}
+extension StringToNative on String {
+  Pointer<Char> toNativeString({Allocator allocator = malloc}) {
+    final units = utf8.encode(this);
+    final result = allocator.allocate<Uint8>(units.length + 1);
+    final nativeString = result.asTypedList(units.length + 1);
+    nativeString.setAll(0, units);
+    nativeString[units.length] = 0;
+    return result.cast<Char>();
+  }
+}
+extension StringUtf8Pointer on String {
+  Pointer<Utf8> toNativeString() => toNativeUtf8();
+}
 extension AssimpColor3 on Vector3 {
   static Vector3 fromNative(aiColor3D m) {
     return Vector3(m.r, m.g, m.b);

@@ -136,10 +136,10 @@ class Material extends AssimpType<aiMaterial> {
   /// Returns a list of material textures with [type]
   Iterable<String> textures(TextureType type) {
     return Iterable.generate(
-      libassimp.aiGetMaterialTextureCount(ptr, type.index),
+      libassimp.aiGetMaterialTextureCount(ptr, type.index as aiTextureType),
       (i) {
         final str = calloc<aiString>();
-        libassimp.aiGetMaterialTexture(ptr, type.index, i, str, nullptr,
+        libassimp.aiGetMaterialTexture(ptr, type.index as aiTextureType, i, str, nullptr,
             nullptr, nullptr, nullptr, nullptr, nullptr);
         final path = AssimpString.fromNative(str.ref);
         calloc.free(str);

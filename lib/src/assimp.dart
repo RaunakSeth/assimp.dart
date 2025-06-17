@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' hide StringUtf8Pointer;
 
 import 'bindings.dart';
 import 'import.dart';
@@ -68,11 +68,11 @@ class Assimp {
   /// @return A textual description of the error that occurred at the last
   /// import process. NULL if there was no error. There can't be an error if you
   /// got a non-NULL #aiScene from #aiImportFile/#aiImportFileEx/#aiApplyPostProcessing.
-  static String get errorString => libassimp.aiGetErrorString().toDartString();
+  static String get errorString => (libassimp.aiGetErrorString() as Pointer<Utf8>).toDartString();
 
   /// Returns a string with legal copyright and licensing information
   /// about Assimp. The string may include multiple lines.
-  static String get legalString => libassimp.aiGetLegalString().toDartString();
+  static String get legalString =>  (libassimp.aiGetLegalString() as Pointer<Utf8>).toDartString();
 
   /// Returns the current major version number of Assimp.
   static int get versionMajor => libassimp.aiGetVersionMajor();
@@ -87,7 +87,7 @@ class Assimp {
   static int get compileFlags => libassimp.aiGetCompileFlags();
 
   /// Returns the branchname of the Assimp runtime.
-  static String get branchName => libassimp.aiGetBranchName().toDartString();
+  static String get branchName => (libassimp.aiGetBranchName() as Pointer<Utf8>).toDartString();
 
   /// Returns whether a given file extension is supported by ASSIMP
   ///
@@ -95,8 +95,8 @@ class Assimp {
   /// Must include a leading dot '.'. Example: ".3ds", ".md3"
   /// @return AI_TRUE if the file extension is supported.
   static bool isSupported(String extension) {
-    final ptr = extension.toNativeString();
-    final res = libassimp.aiIsExtensionSupported(ptr);
+    final ptr = StringUtf8Pointer(extension).toNativeString();
+    final res = libassimp.aiIsExtensionSupported(ptr as Pointer<Char>);
     malloc.free(ptr);
     return res != 0;
   }

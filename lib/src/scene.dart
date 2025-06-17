@@ -139,7 +139,7 @@ class Scene extends AssimpType<aiScene> {
   /// @return Pointer to the imported data or NULL if the import failed.
   static Scene? fromFile(String path,
       {int flags = 0, Map<String, dynamic>? properties}) {
-    final cpath = path.toNativeString();
+    final cpath = StringToNative(path).toNativeString();
     final store = PropertyStore.fromMap(properties);
     final ptr = libassimp.aiImportFileExWithProperties(
         cpath, flags, nullptr, store?.ptr ?? nullptr);
@@ -148,12 +148,12 @@ class Scene extends AssimpType<aiScene> {
     return Scene.fromNative(ptr);
   }
 
-  static Scene? _fromBuffer(Pointer<Int8> cstr, int length, flags,
+  static Scene? _fromBuffer(Pointer<Uint8> cstr, int length, flags,
       Map<String, dynamic>? properties, String hint) {
-    final chint = hint.toNativeString();
+    final chint = StringToNative(hint).toNativeString(); // Just use extension, don't wrap with StringToNative
     final store = PropertyStore.fromMap(properties);
     final ptr = libassimp.aiImportFileFromMemoryWithProperties(
-        cstr, length, flags, chint, store?.ptr ?? nullptr);
+        cstr as Pointer<Char>, length, flags, chint, store?.ptr ?? nullptr);
     malloc.free(cstr);
     malloc.free(chint);
     store?.dispose();
@@ -166,7 +166,7 @@ class Scene extends AssimpType<aiScene> {
   static Scene? fromString(String str,
       {int flags = 0, Map<String, dynamic>? properties, String hint = ''}) {
     return Scene._fromBuffer(
-        str.toNativeString(), str.length, flags, properties, hint);
+        StringToNative(str).toNativeString() as Pointer<Uint8>, str.length, flags, properties, hint);
   }
 
   /// Reads the given file from a given memory buffer.
@@ -205,7 +205,7 @@ class Scene extends AssimpType<aiScene> {
     // ### TODO: avoid copy...
     // https://github.com/dart-lang/ffi/issues/31
     // https://github.com/dart-lang/ffi/issues/27
-    final cbuffer = malloc<Int8>(bytes.length);
+    final cbuffer = malloc<Uint8>(bytes.length);
     final carray = cbuffer.asTypedList(bytes.length);
     carray.setAll(0, bytes);
     return Scene._fromBuffer(cbuffer, bytes.length, flags, properties, hint);

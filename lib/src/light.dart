@@ -111,7 +111,7 @@ class Light extends AssimpType<aiLight> {
   /// The type of the light source.
   ///
   /// aiLightSource_UNDEFINED is not a valid value for this member.
-  LightSourceType get type => LightSourceType.values[_light.mType];
+  LightSourceType get type => LightSourceType.values[_light.mType.index];
 
   /// Position of the light source in space. Relative to the
   /// transformation of the node corresponding to the light.

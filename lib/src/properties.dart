@@ -43,7 +43,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import 'dart:ffi';
 
-import 'package:ffi/ffi.dart';
+import 'package:ffi/ffi.dart' hide StringUtf8Pointer;
 
 import 'bindings.dart';
 import 'extensions.dart';
@@ -828,7 +828,7 @@ class PropertyStore extends AssimpType<aiPropertyStore> {
     if (properties == null) return null;
     final ptr = libassimp.aiCreatePropertyStore();
     for (final entry in properties.entries) {
-      final name = entry.key.toNativeString();
+      final name = StringFFI(entry.key).toNativeString();
       switch (entry.value.runtimeType) {
         case bool:
           libassimp.aiSetImportPropertyInteger(

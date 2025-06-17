@@ -79,7 +79,7 @@ class Face extends AssimpType<aiFace> {
   }
 
   /// Pointer to the indices array. Size of the array is given in numIndices.
-  Iterable<int> get indices => _face.mIndices.asTypedList(_face.mNumIndices);
+  Iterable<int> get indices => _face.mIndices.cast<Uint32>().asTypedList(_face.mNumIndices);
 
   Uint32List get indexData =>
       _face.mIndices.cast<Uint32>().asTypedList(_face.mNumIndices);
@@ -392,7 +392,7 @@ class Mesh extends AssimpType<aiMesh> {
   }
 
   /// Method of morphing when animeshes are specified.
-  int get morphingMethod => _mesh.mMethod;
+  int get morphingMethod => _mesh.mMethod.value;
 
   /// ### TODO
   Aabb3 get aabb => AssimpAabb3.fromNative(_mesh.mAABB);

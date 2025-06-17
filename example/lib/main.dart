@@ -3,10 +3,10 @@ import 'dart:math' as Math;
 import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:assimp/assimp.dart';
+import 'package:assimp/assimp.dart' hide Matrix4;
 import 'package:flutter/material.dart' hide Matrix4;
 import 'package:flutter/painting.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart' hide Matrix4;
 import 'package:path/path.dart';
 import 'package:vector_math/vector_math.dart' hide Colors;
 
@@ -22,23 +22,23 @@ class ExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: ExamplePage(),
+      home: ExamplePage(key: UniqueKey()),
     );
   }
 }
 
 class ExamplePage extends StatefulWidget {
-  ExamplePage({Key key}) : super(key: key);
+  ExamplePage({required Key key}) : super(key: key);
 
   @override
   _ExamplePageState createState() => _ExamplePageState();
 }
 
 class _ExamplePageState extends State<ExamplePage> {
-  Scene scene;
-  Aabb3 bounds;
-  String current;
-  Offset startPoint;
+  late Scene scene;
+  late Aabb3 bounds;
+  late String current;
+  late Offset startPoint;
   double scale = 1;
   double startScale = 1;
 
@@ -51,19 +51,19 @@ class _ExamplePageState extends State<ExamplePage> {
   Future<void> loadScene(String key) async {
     final data = await rootBundle.load('models/$key');
     final bytes =
-        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+    data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
     scene = Scene.fromBytes(bytes,
         hint: extension(key),
         flags: ProcessFlags.triangulate |
-            ProcessFlags.optimizeMeshes |
-            ProcessFlags.generateNormals |
-            ProcessFlags.joinIdenticalVertices);
+        ProcessFlags.optimizeMeshes |
+        ProcessFlags.generateNormals |
+        ProcessFlags.joinIdenticalVertices)!;
     current = key;
     bounds = scene.calculateBounds();
-    transformScene(scale: 1, delta: models[key]);
+    transformScene(scale: 1, delta: models[key]!);
   }
 
-  void transformScene({double scale, Offset delta}) {
+  void transformScene({required double scale, required Offset delta}) {
     if (scene == null) return;
     scene.rootNode.transformation = scene.rootNode.transformation
       ..rotateX(-0.01 * delta.dy)
@@ -82,11 +82,11 @@ class _ExamplePageState extends State<ExamplePage> {
             itemBuilder: (context) => models.keys
                 .map(
                   (model) => CheckedPopupMenuItem<String>(
-                    value: model,
-                    checked: model == current,
-                    child: Text(model),
-                  ),
-                )
+                value: model,
+                checked: model == current,
+                child: Text(model),
+              ),
+            )
                 .toList(),
             onSelected: (value) => loadScene(value),
           ),
@@ -142,18 +142,18 @@ extension Vector3Bounds on Vector3 {
 
 extension SceneBounds on Scene {
   Aabb3 calculateBounds() {
-    Aabb3 bounds;
+    final firstVertex = meshes.first.vertices.first;
+    Aabb3 bounds = Aabb3.minMax(firstVertex, firstVertex);
     for (final mesh in meshes) {
       for (final vertex in mesh.vertices) {
-        bounds = Aabb3.minMax(
-          bounds?.min?.minV(vertex) ?? vertex,
-          bounds?.max?.maxV(vertex) ?? vertex,
-        );
+        bounds.min.setFrom(bounds.min.minV(vertex));
+        bounds.max.setFrom(bounds.max.maxV(vertex));
       }
     }
     return bounds;
   }
 }
+
 
 class ScenePainter extends CustomPainter {
   final Scene scene;
@@ -187,8 +187,10 @@ class ScenePainter extends CustomPainter {
           canvas.drawRawPoints(PointMode.lines, lines(mesh, matrix), paint);
           break;
         case PrimitiveType.triangle:
-          canvas.drawVertices(
-              vertices(mesh, matrix, light), BlendMode.src, paint);
+          final v = vertices(mesh, matrix, light);
+          if (v != null) {
+            canvas.drawVertices(v, BlendMode.src, paint);
+          }
           break;
         default:
           break;
@@ -225,14 +227,14 @@ class ScenePainter extends CustomPainter {
     return points;
   }
 
-  Vertices vertices(Mesh mesh, Matrix4 matrix, Vector3 light) {
+  Vertices? vertices(Mesh mesh, Matrix4 matrix, Vector3 light) {
     final normals = mesh.normalData;
     final vertices = mesh.vertexData;
 
     double faceDepth(Uint32List indices, Float32List vertices) {
       return (vertices[indices[0] * 3 + 2] +
-              vertices[indices[1] * 3 + 2] +
-              vertices[indices[2] * 3 + 2]) /
+          vertices[indices[1] * 3 + 2] +
+          vertices[indices[2] * 3 + 2]) /
           3;
     }
 
@@ -248,7 +250,7 @@ class ScenePainter extends CustomPainter {
     for (final face in faces.values) {
       assert(face.indices.length == 3);
       for (final j in face.indices) {
-        final c = light.dot(matrix.transformed3(normals.vectorAt(j * 3)));
+        final c = light.dot(matrix.transformed3(normals!.vectorAt(j * 3)));
         if (c < 0 || c.isNaN) continue;
 
         colors[i] = Color.fromARGB(
