@@ -173,9 +173,10 @@ extension SceneExport on Scene {
       nullptr,
       flags,
     );
+    print('[Assimp] exportScene result (int): $res');
     malloc.free(cpath);
     malloc.free(cformat);
-    return res == 0;
+    return res.index == 0;
   }
 
   /// Exports the given scene to a chosen file format. Returns the exported data as a binary blob which

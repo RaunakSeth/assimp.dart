@@ -44,7 +44,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' hide StringUtf8Pointer;
-
+import 'scene.dart';
+import 'properties.dart';
 import 'bindings.dart';
 import 'import.dart';
 import 'extensions.dart';
@@ -100,7 +101,40 @@ class Assimp {
     malloc.free(ptr);
     return res != 0;
   }
+  static Scene importFile(String path, {int flags = 0}) {
+    final ptr = StringUtf8Pointer(path).toNativeString();
+    final scenePtr = libassimp.aiImportFile(ptr.cast(), flags);
+    malloc.free(ptr);
+    if (scenePtr == nullptr) {
+      throw Exception('Assimp import failed: $errorString');
+    }
+    return Scene.fromNative(scenePtr)!;
+  }
 
+  /// Import a model file with properties.
+  static Scene importFileWithProperties(String path, PropertyStore props, {int flags = 0}) {
+    final ptr = StringUtf8Pointer(path).toNativeString();
+    final scenePtr = libassimp.aiImportFileExWithProperties(
+        ptr.cast<Char>(),           // path
+        flags,                      // flags
+        nullptr.cast<aiFileIO>(),   // file system handler (null for default)
+        props.ptr                   // property store
+    );
+    malloc.free(ptr);
+    if (scenePtr == nullptr) {
+      throw Exception('Assimp import failed: $errorString');
+    }
+    return Scene.fromNative(scenePtr)!;
+  }
+
+  /// Apply post-processing to an already imported scene.
+  static Scene applyPostProcessing(Scene scene, int flags) {
+    final processed = libassimp.aiApplyPostProcessing(scene.ptr, flags);
+    if (processed == nullptr) {
+      throw Exception('Post-processing failed: $errorString');
+    }
+    return Scene.fromNative(processed)!;
+  }
   /// Get a list of all file extensions supported by ASSIMP.
   ///
   /// If a file extension is contained in the list this does, of course, not
